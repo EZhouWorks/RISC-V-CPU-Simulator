@@ -1,9 +1,6 @@
 #ifndef RISC_V_CPU_SIMULATOR_ALU_H
 #define RISC_V_CPU_SIMULATOR_ALU_H
 #include <cstdint>
-#include <iostream>
-#include <cstdlib>
-#include "Register.h"
 
 class ALU {
 private:
@@ -24,15 +21,15 @@ private:
     }
 
     uint32_t SLL(uint32_t x1_value, uint32_t shift_amount) { //command 5
-        return x1_value<<shift_amount;
+        return x1_value<<(shift_amount & 0x1f);
     }
 
     uint32_t SRL(uint32_t x1_value, uint32_t shift_amount) { //unsign; command 6
-        return x1_value >> shift_amount;
+        return x1_value >> (shift_amount & 0x1f);
     }
 
     uint32_t SRA(uint32_t x1_value, uint32_t shift_amount) { //signed; command 7
-        return (int32_t)x1_value >> shift_amount;
+        return (uint32_t)((int32_t)x1_value >> (shift_amount & 0x1f));
     }
 
     uint32_t SLT(uint32_t x1_value, uint32_t x2_value) { //command 8
@@ -61,9 +58,9 @@ public:
                 case 2: return AND(x1_value, x2_value);
                 case 3: return OR(x1_value, x2_value);
                 case 4: return XOR(x1_value, x2_value);
-                case 5: return SLL(x1_value, shift_amount);
-                case 6: return SRL(x1_value, shift_amount);
-                case 7: return SRA(x1_value, shift_amount);
+                case 5: return SLL(x1_value, (shift_amount & 0x1f));
+                case 6: return SRL(x1_value, (shift_amount & 0x1f));
+                case 7: return SRA(x1_value, (shift_amount & 0x1f));
                 case 8: return SLT(x1_value, x2_value);
                 case 9: return SLTU(x1_value, x2_value);
                 default:

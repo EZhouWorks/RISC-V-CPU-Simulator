@@ -7,11 +7,11 @@
 #include <iostream>
 #include <bitset>
 using namespace std;
-class Register {
+class RegisterFile {
 private:
     array<uint32_t,32> registers;
 public:
-    Register() {
+    RegisterFile() {
         for (int i=0; i<32; i++) {
             registers[i] = 00000000000000000000000000000000;
         }

@@ -1,4 +1,4 @@
-#include "src/Register.h"
+#include "src/RegisterFile.h"
 #include<iostream>
 #include<string>
 #include<bitset>
