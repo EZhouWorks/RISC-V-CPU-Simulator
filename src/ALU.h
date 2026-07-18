@@ -54,31 +54,21 @@ private:
         }
     }
 public:
-    uint32_t operate(int command, uint32_t x1_value, uint32_t x2_value, uint32_t shift_amount = 0) {
+    uint32_t operate(int command, uint32_t x1_value = 0, uint32_t x2_value = 0, uint32_t shift_amount = 0) {
         switch (command) {
-                case 0: ADD(x1_value, x2_value);
-                break;
-                case 1: SUB(x1_value, x2_value);
-                break;
-                case 2: AND(x1_value, x2_value);
-                break;
-                case 3: OR(x1_value, x2_value);
-                break;
-                case 4: XOR(x1_value, x2_value);
-                break;
-                case 5: SLL(x1_value, x2_value);
-                break;
-                case 6: SRL(x1_value, x2_value);
-                break;
-                case 7: SRA(x1_value, x2_value);
-                break;
-                case 8: SLT(x1_value, x2_value);
-                break;
-                case 9: SLTU(x1_value, x2_value);
-                break;
-            default:
-                cout<<"Unexpected Command"<<endl;
-                break;
+                case 0: return ADD(x1_value, x2_value);
+                case 1: return SUB(x1_value, x2_value);
+                case 2: return AND(x1_value, x2_value);
+                case 3: return OR(x1_value, x2_value);
+                case 4: return XOR(x1_value, x2_value);
+                case 5: return SLL(x1_value, shift_amount);
+                case 6: return SRL(x1_value, shift_amount);
+                case 7: return SRA(x1_value, shift_amount);
+                case 8: return SLT(x1_value, x2_value);
+                case 9: return SLTU(x1_value, x2_value);
+                default:
+                    cout<<"Unexpected Command"<<endl;
+                    break;
         }
     }
 
