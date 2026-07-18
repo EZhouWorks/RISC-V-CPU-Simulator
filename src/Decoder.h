@@ -1,8 +1,120 @@
-//
-// Created by zhoue on 2026/7/17.
-//
-
 #ifndef RISC_V_CPU_SIMULATOR_DECODER_H
 #define RISC_V_CPU_SIMULATOR_DECODER_H
+#include<cstdint>
+#include<string>
+#include<bitset>
+class Decoder {
+public:
+    string Decode(uint32_t machine_code) {
+        //machine code dispart
+        uint32_t opcode = machine_code & 0x7F;
+        uint32_t rd     = (machine_code >> 7) & 0x1F;
+        uint32_t funct3 = (machine_code >> 12) & 0x07;
+        uint32_t rs1    = (machine_code >> 15) & 0x1F;
+        uint32_t rs2    = (machine_code >> 20) & 0x1F;
+        uint32_t funct7 = (machine_code >> 25) & 0x7F;
+        int32_t imm = (machine_code >> 20) & 0xFFF;
 
+        switch (opcode) {
+            case(0b0110011): //R-Type
+                switch(funct3) {
+                    case(0b000):
+                        switch(funct7) {
+                            case(0b0000000):return 1; //ADD
+                            case(0b0100000):return 2;//SUB
+                        default: return 0;
+                        }
+                    case(0b001):return 3;//SLL
+                    case(0b010):return 4;//SLT
+                    case(0b011):return 5;//SLTU
+                    case(0b100):return 6;//XOR
+                    case(0b101):
+                        switch (funct7) {
+                            case(0b0000000):return 7;//SRL
+                            case(0b0100000):return 8;//SRA
+                        default: return 0;
+                        }
+                    case(0b110):return 9;//OR
+                    case(0b111):return 10;//AND
+                default:return 0;
+                }
+            case(0b0010011):   // I-Type ALU
+                switch(funct3) {
+                    case(0b000):
+                        return 11;   // ADDI
+                    case(0b010):
+                        return 12;   // SLTI
+                    case(0b011):
+                        return 13;   // SLTIU
+                    case(0b100):
+                        return 14;   // XORI
+                    case(0b001):
+                        switch(funct7) {
+                            case(0b0000000):
+                                return 15;   // SLLI
+                        default:return 0;
+                        }
+                    case(0b101):
+                        switch(funct7) {
+                            case(0b0000000):
+                                return 16;   // SRLI
+                            case(0b0100000):
+                                return 17;   // SRAI
+                        default:return 0;
+                        }
+                    case(0b110):
+                        return 18;   // ORI
+                    case(0b111):
+                        return 19;   // ANDI
+                default:return 0;
+                }
+            case(0b0000011): //Load
+                switch (funct3) {
+                    case(0b000):return 20; //LB
+                    case(0b001):return 21; //LH
+                    case(0b010):return 22; //LW
+                    case(0b100):return 23; //LBU
+                    case(0b101):return 24; //LHU
+                default:return 0;
+                }
+            case(0b0100011): //Store
+                switch (funct3) {
+                    case(0b000):return 25; //SB
+                    case(0b001):return 26; //SH
+                    case(0b010):return 27; //SW
+                default:return 0;
+                }
+            case(0b1100011): //Branch
+                switch(funct7) {
+                    case(0b000):return 28; //BEQ
+                    case(0b001):return 29; //BNE
+                    case(0b100):return 30; //BLT
+                    case(0b101):return 31; //BGE
+                    case(0b110):return 32; //BLTU
+                    case(0b111):return 33; //BGEU
+                default:return 0;
+                }
+            case(0b0110111): //LUI
+                return 34;
+            case(0b0010111): //AUIPC
+                return 35;
+            case(0b1101111):
+                return 36; //JAL
+            case(0b1100111):
+                return 37; //JALR
+            case(1110011):
+                if (imm == 0) {
+                    return 38; //ECALL
+                }
+                else
+                    return 39; //EBREAK
+
+            default:return 0;
+        }
+
+    }
+
+
+
+};
 #endif //RISC_V_CPU_SIMULATOR_DECODER_H
