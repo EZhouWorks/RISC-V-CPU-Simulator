@@ -5,15 +5,16 @@
 #include<bitset>
 class Decoder {
 public:
-    string Decode(uint32_t machine_code) {
-        //machine code dispart
+    uint32_t rd,rs1,rs2,imm = 0b0;
+    uint32_t Decode(uint32_t machine_code) {
+        //machine code dispart (addr)
         uint32_t opcode = machine_code & 0x7F;
-        uint32_t rd     = (machine_code >> 7) & 0x1F;
+        rd     = (machine_code >> 7) & 0x1F;
         uint32_t funct3 = (machine_code >> 12) & 0x07;
-        uint32_t rs1    = (machine_code >> 15) & 0x1F;
-        uint32_t rs2    = (machine_code >> 20) & 0x1F;
+        rs1    = (machine_code >> 15) & 0x1F;
+        rs2    = (machine_code >> 20) & 0x1F;
         uint32_t funct7 = (machine_code >> 25) & 0x7F;
-        int32_t imm = (machine_code >> 20) & 0xFFF;
+        imm = (machine_code >> 20) & 0xFFF;
 
         switch (opcode) {
             case(0b0110011): //R-Type

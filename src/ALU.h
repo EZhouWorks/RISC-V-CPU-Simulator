@@ -1,6 +1,26 @@
 #ifndef RISC_V_CPU_SIMULATOR_ALU_H
 #define RISC_V_CPU_SIMULATOR_ALU_H
 #include <cstdint>
+#include <iostream>
+using namespace std;
+
+enum ALU_op
+{
+    ADD_op,
+    SUB_op,
+    AND_op,
+    OR_op,
+    XOR_op,
+    SLL_op,
+    SRL_op,
+    SRA_op,
+    SLT_op,
+    SLTU_op,
+    NONE_op,
+};
+
+
+
 
 class ALU {
 private:
@@ -51,21 +71,21 @@ private:
         }
     }
 public:
-    uint32_t operate(int command, uint32_t x1_value = 0, uint32_t x2_value = 0, uint32_t shift_amount = 0) {
+    ALU(){};
+    uint32_t operate(ALU_op command, uint32_t x1_value = 0, uint32_t x2_value = 0) {
         switch (command) {
-                case 0: return ADD(x1_value, x2_value);
-                case 1: return SUB(x1_value, x2_value);
-                case 2: return AND(x1_value, x2_value);
-                case 3: return OR(x1_value, x2_value);
-                case 4: return XOR(x1_value, x2_value);
-                case 5: return SLL(x1_value, (shift_amount & 0x1f));
-                case 6: return SRL(x1_value, (shift_amount & 0x1f));
-                case 7: return SRA(x1_value, (shift_amount & 0x1f));
-                case 8: return SLT(x1_value, x2_value);
-                case 9: return SLTU(x1_value, x2_value);
+                case ADD_op: return ADD(x1_value, x2_value);
+                case SUB_op: return SUB(x1_value, x2_value);
+                case AND_op: return AND(x1_value, x2_value);
+                case OR_op: return OR(x1_value, x2_value);
+                case XOR_op: return XOR(x1_value, x2_value);
+                case SLL_op: return SLL(x1_value, x2_value);
+                case SRL_op: return SRL(x1_value, x2_value);
+                case SRA_op: return SRA(x1_value, x2_value);
+                case SLT_op: return SLT(x1_value, x2_value);
+                case SLTU_op: return SLTU(x1_value, x2_value);
                 default:
-                    cout<<"Unexpected Command"<<endl;
-                    break;
+                    throw runtime_error("Invalid ALU command");
         }
     }
 
