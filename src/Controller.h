@@ -8,7 +8,8 @@
 #include "ALU.h"
 enum ALU_source { //indicate 2nd num from rs2/imm
     rs2,
-    imm
+    I_12bit_imm,
+    I_shamt_imm
 };
 
 class Controller {
@@ -34,15 +35,15 @@ public:
             case(9): this->ALU_operation = OR_op; ALU_source = rs2; break;
             case(10): this->ALU_operation = AND_op; ALU_source = rs2; break;
             //I type ALU
-            case(11): this->ALU_operation = ADD_op; ALU_source = imm; break;
-            case(12): this->ALU_operation = SLT_op; ALU_source = imm; break;
-            case(13): this->ALU_operation = SLTU_op; ALU_source = imm; break;
-            case(14): this->ALU_operation = XOR_op; ALU_source = imm; break;
-            case(15): this->ALU_operation = SLL_op; ALU_source = imm; break;
-            case(16): this->ALU_operation = SRL_op; ALU_source = imm; break;
-            case(17): this->ALU_operation = SRA_op; ALU_source = imm; break;
-            case(18): this->ALU_operation = OR_op; ALU_source = imm; break;
-            case(19): this->ALU_operation = AND_op; ALU_source = imm;; break;
+            case(11): this->ALU_operation = ADD_op; ALU_source = I_12bit_imm; break;
+            case(12): this->ALU_operation = SLT_op; ALU_source = I_12bit_imm; break;
+            case(13): this->ALU_operation = SLTU_op; ALU_source = I_12bit_imm; break;
+            case(14): this->ALU_operation = XOR_op; ALU_source = I_12bit_imm; break;
+            case(15): this->ALU_operation = SLL_op; ALU_source = I_shamt_imm; break;
+            case(16): this->ALU_operation = SRL_op; ALU_source = I_shamt_imm; break;
+            case(17): this->ALU_operation = SRA_op; ALU_source = I_shamt_imm; break;
+            case(18): this->ALU_operation = OR_op; ALU_source = I_12bit_imm; break;
+            case(19): this->ALU_operation = AND_op; ALU_source = I_12bit_imm; break;
 
         }
     }

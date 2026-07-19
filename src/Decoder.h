@@ -5,7 +5,7 @@
 #include<bitset>
 class Decoder {
 public:
-    uint32_t rd,rs1,rs2,imm = 0b0;
+    uint32_t rd,rs1,rs2,I_12bit_imm,I_shamt_imm,SYS_code = 0b0;
     uint32_t Decode(uint32_t machine_code) {
         //machine code dispart (addr)
         uint32_t opcode = machine_code & 0x7F;
@@ -14,7 +14,10 @@ public:
         rs1    = (machine_code >> 15) & 0x1F;
         rs2    = (machine_code >> 20) & 0x1F;
         uint32_t funct7 = (machine_code >> 25) & 0x7F;
-        imm = (machine_code >> 20) & 0xFFF;
+        I_12bit_imm = (machine_code >> 20) & 0xFFF;
+        I_shamt_imm = (machine_code >> 20) & 0x1F;
+        SYS_code = I_12bit_imm;
+
 
         switch (opcode) {
             case(0b0110011): //R-Type
@@ -104,7 +107,7 @@ public:
             case(0b1100111):
                 return 37; //JALR
             case(1110011):
-                if (imm == 0) {
+                if (SYS_code== 0) {
                     return 38; //ECALL
                 }
                 else
