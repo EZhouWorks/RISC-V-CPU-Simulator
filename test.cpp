@@ -6,6 +6,7 @@
 #include<array>
 #include "src/CPUcore.h"
 #include <vector>
+
 using namespace std;
 void dumpSelectedReg(CPUcore core, int reg1_index, int reg2_index, int reg3_index) {
     cout<<"Reg "<<reg1_index<<" :"<<core.registerFile.read(reg1_index)<<endl;
@@ -23,6 +24,17 @@ void varifyCommand(CPUcore core, vector<uint32_t> machine_code) {
         cout<<"rd value: "<<core.registerFile.read(3)<<endl<<endl;
     }
 }
+void varifyL1Cache(CPUcore core) {
+    RAM ram = RAM();
+    ram.memory[0] = 0b10110011;
+    ram.memory[1] = 0b11110001;
+    ram.memory[2] = 0b00100000;
+    ram.memory[3] = 0b00000000;
+    cout<<bitset<32>(core.l1_cache.readFullCommand(0,ram))<<endl;
+    cout<<bitset<32>(core.l1_cache.readFullCommand(0,ram))<<endl;
+    cout<<bitset<32>(core.l1_cache.readFullCommand(0,ram))<<endl;
+}
+
 int main() {
     uint32_t machine_code = 0b00000000001000001111000110110011;
     CPUcore core0 = CPUcore(0);
@@ -32,7 +44,7 @@ int main() {
     // //dumpSelectedReg(core0,3,1,2);
     // core0.registerFile.dumpRawValue();
     vector<uint32_t> ITypeCommandSet = {
-        0b00000000010100001000000110010011,
+        //0b00000000 01010000 10000001 10010011,
         0b00000000010100001010000110010011,
         0b00000000010100001011000110010011,
         0b00000000010100001100000110010011,
@@ -43,6 +55,6 @@ int main() {
         0b01000000001000001101000110010011
     };
 
-    varifyCommand(core0, ITypeCommandSet);
+    varifyL1Cache(core0);
 
 }

@@ -10,6 +10,9 @@
 #include "Decoder.h"
 #include "Controller.h"
 #include "RegisterFile.h"
+#include "L1Cache.h"
+#include "RAM.h"
+
 class CPUcore {
 public:
     Controller controller = Controller();
@@ -17,6 +20,8 @@ public:
     Decoder decoder = Decoder();
     RegisterFile registerFile = RegisterFile();
     int core_id;
+    static RAM ram;
+    L1Cache l1_cache = L1Cache();
 
     CPUcore(int core_id) {
         this->core_id = core_id;
@@ -34,10 +39,11 @@ public:
 
 
         controller.SetControlSignal(decoded_code); //update control signal
+
+        //ALU Operation
         ALU_op alu_op = controller.ALU_operation;
         ALU_source alu_source = controller.ALU_source;
         uint32_t ALU_result = 0b0;
-
         if (alu_source == ALU_source::rs2) {
             ALU_result = alu.operate(alu_op, rs1_val, rs2_val);
         }
@@ -47,7 +53,6 @@ public:
         else if (alu_source == ALU_source::I_shamt_imm) {
             ALU_result = alu.operate(alu_op, rs1_val,I_shamt_imm);
         }
-
         registerFile.write(rd_addr,ALU_result);//write back
 
     }
