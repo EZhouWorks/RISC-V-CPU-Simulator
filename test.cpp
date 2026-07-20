@@ -25,14 +25,18 @@ void varifyCommand(CPUcore core, vector<uint32_t> machine_code) {
     }
 }
 void varifyL1Cache(CPUcore core) {
+    L2Cache l2cache = L2Cache();
     RAM ram = RAM();
     ram.memory[0] = 0b10110011;
     ram.memory[1] = 0b11110001;
     ram.memory[2] = 0b00100000;
     ram.memory[3] = 0b00000000;
-    cout<<bitset<32>(core.l1_cache.readFullCommand(0,ram))<<endl;
-    cout<<bitset<32>(core.l1_cache.readFullCommand(0,ram))<<endl;
-    cout<<bitset<32>(core.l1_cache.readFullCommand(0,ram))<<endl;
+    l2cache.loadCacheBlockFromRAM(0,ram);
+    cout<<bitset<32>(core.l1_cache.readFullData(0,l2cache,ram))<<endl;
+
+    cout<<bitset<32>(core.l1_cache.readFullData(0,l2cache,ram))<<endl;
+
+
 }
 
 int main() {

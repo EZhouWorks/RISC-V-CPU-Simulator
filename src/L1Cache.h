@@ -4,15 +4,10 @@
 #define RISC_V_CPU_SIMULATOR_L1CACHE_H
 #include<cstdint>
 #include "RAM.h"
+#include "L2Cache.h"
 
 constexpr int BLOCK_SIZE = 64;
 constexpr int CACHE_LINES = 256;
-
-struct CacheLine {
-    int valid;
-    int tag;
-    uint8_t byte[BLOCK_SIZE]; //each cacheline stores 16 commands， 64byte storage,
-};
 
 class L1Cache {
 public:
@@ -22,29 +17,12 @@ public:
             cachelines[i].valid = 0;
             cachelines[i].tag = 0;
             for (int j = 0; j < BLOCK_SIZE; j++) {
-                cachelines[i].byte[j] = 0;
+                cachelines[i].bytes[j] = 0;
             }
         }
     }
 
-    void loadCacheBlockFromRAM(uint32_t addr, RAM &ram) {
-        uint32_t block = addr/BLOCK_SIZE;
-        uint32_t index = block%CACHE_LINES;
-        uint32_t tag = block/CACHE_LINES;
-        // uint32_t offset = addr%64;
-
-        uint32_t blockStartAddr = block*BLOCK_SIZE;
-        uint32_t blockEndAddr = blockStartAddr+BLOCK_SIZE-1;
-
-        for (int i = blockStartAddr; i <= blockEndAddr; i++) {
-            cachelines[index].byte[i-blockStartAddr] = ram.readCell(i);
-        }
-
-        cachelines[index].valid = 1;
-        cachelines[index].tag = tag;
-    }
-
-    uint32_t readFullCommand(uint32_t addr, RAM &ram) { //loads data from ram if missed
+    uint32_t readFullData(uint32_t addr, L2Cache &l2cache, RAM &ram) { //loads data from ram if missed, can also be used to access data in L1Cache
         uint32_t block = addr/64;
         uint32_t index = block%256;
         uint32_t tag = block/256;
@@ -52,17 +30,25 @@ public:
 
         CacheLine& target_cacheLine = cachelines[index];
         if (target_cacheLine.valid == 1 and target_cacheLine.tag == tag) { //hit
-            cout<<"hit"<<endl;
+            cout<<"hit L1"<<endl;
             return
-                  (uint32_t)target_cacheLine.byte[offset]
-                | ((uint32_t)target_cacheLine.byte[offset+1] << 8)
-                | ((uint32_t)target_cacheLine.byte[offset+2] << 16)
-                | ((uint32_t)target_cacheLine.byte[offset+3] << 24);
+                  (uint32_t)target_cacheLine.bytes[offset]
+                | ((uint32_t)target_cacheLine.bytes[offset+1] << 8)
+                | ((uint32_t)target_cacheLine.bytes[offset+2] << 16)
+                | ((uint32_t)target_cacheLine.bytes[offset+3] << 24);
         }
-        else { //miss, manually read from RAM
-            cout<<"miss"<<endl;
-            loadCacheBlockFromRAM(addr, ram);
-            return 0b11111111111111111111111111111111;
+        else { //miss, read and load from L2 Cache
+            cout<<"miss L1"<<endl;
+            target_cacheLine = l2cache.readFullData(addr,ram);
+            cachelines[index] = target_cacheLine;
+            cachelines[index].valid = 1;
+            cachelines[index].tag = tag;
+
+            return
+                  (uint32_t)target_cacheLine.bytes[offset]
+                | ((uint32_t)target_cacheLine.bytes[offset+1] << 8)
+                | ((uint32_t)target_cacheLine.bytes[offset+2] << 16)
+                | ((uint32_t)target_cacheLine.bytes[offset+3] << 24);
         }
     }
 
