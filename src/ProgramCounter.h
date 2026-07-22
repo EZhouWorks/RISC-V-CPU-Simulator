@@ -15,14 +15,14 @@ public:
         this->End_value = end_point;
     }
 
-    int StepForward(int steps) {
-        if (PC_value+steps <= End_value+4) {
-            PC_value = PC_value + steps;
-            cout<<"PC_VAL"<<PC_value<<endl;
+    void StepForward(int step) {
+        PC_value = PC_value + step;
+    }
+    int CheckValid() { //this checks if the fetched machine code is still within the valid range
+        if (PC_value < End_value) {
             return 1;
         }
         else {
-            cout<<"PC out of range"<<endl;
             return 0;
         }
     }

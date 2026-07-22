@@ -25,7 +25,7 @@ public:
     L1Cache l1_cache = L1Cache();
     PipelineRegisters pipeline_registers_write = PipelineRegisters(); //this pipeline register set is write only
     PipelineRegisters pipeline_registers_read = PipelineRegisters();  //this pipeline register set is read only
-    ProgramCounter program_counter = ProgramCounter(0b0,7);
+    ProgramCounter program_counter = ProgramCounter(0b0,11);
 
     CPUcore(int core_id) {
         this->core_id = core_id;
@@ -42,15 +42,15 @@ public:
     }
 
     void Fetch(L2Cache& l2cache,RAM& ram) {
-        pipeline_registers_write.IF_ID_register.machine_code = CPULoadWord(program_counter.PC_value,l2cache,ram);
-        pipeline_registers_write.IF_ID_register.valid = 1;
-        if (program_counter.StepForward(4) == 1) {
+        if (program_counter.CheckValid() == 1) {
+            pipeline_registers_write.IF_ID_register.machine_code = CPULoadWord(program_counter.PC_value,l2cache,ram);
             pipeline_registers_write.IF_ID_register.valid = 1;
+            program_counter.StepForward(4);
         }
         else {
             pipeline_registers_write.IF_ID_register.valid = 0;
         }
-        //cout<<"FETCH MC "<<bitset<32>(pipeline_registers_write.IF_ID_register.machine_code)<<endl;
+
         cout<<"FETCH valid "<<pipeline_registers_write.IF_ID_register.valid<<endl;
     }
     void Decode() {
@@ -101,7 +101,7 @@ public:
                         case(ALU_source::I_shamt_imm):ALU_result = alu.operate(alu_op,rs1_val, I_shamt_imm);break;
                         case(ALU_source::store_imm):ALU_result = alu.operate(alu_op,rs1_val, store_imm);break;
                     default: throw runtime_error("clear ALU src1 but unknown ALU src2");
-                    }
+                    };break;
                 case rs2:
                     ALU_result = alu.operate(alu_op,rs1_val, I_12bit_imm);break;
                 default: throw runtime_error("Unknown ALU source 1");
@@ -152,6 +152,7 @@ public:
             uint32_t rd_addr = pipeline_registers_read.MEM_WB_register.rd_addr;
 
             cout<<"WB "<<rd_addr<<endl;
+            cout<<"ALU RESULT WB "<<ALU_result<<endl;
             uint32_t rs2_val = pipeline_registers_read.MEM_WB_register.rs2_val;
 
             registerFile.write(rd_addr,ALU_result);

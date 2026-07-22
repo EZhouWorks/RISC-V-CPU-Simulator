@@ -22,9 +22,9 @@ void varifyPipeline(CPUcore &core, L2Cache& l2cache, RAM &ram) {
 
         // addi x2, x0, 10
         0b00000000101000000000000100010011,
-        //
-        // // add x3, x1, x2
-        // 0b00000000001000001000000110110011,
+
+        // add x3, x1, x2
+        0b00000000001000001000000110110011,
         //
         // // sub x4, x2, x1
         // 0b01000000000100010000001000110011,
@@ -41,13 +41,13 @@ void varifyPipeline(CPUcore &core, L2Cache& l2cache, RAM &ram) {
         // // sw x3, 0(x0)
         // 0b00000000001100000010000000100011
     };
-    ram.loadCommands(commands, 2,0);
-    for (int i=0;i<10;i++) {
+    ram.loadCommands(commands, 3,0);
+    for (int i=0;i<8;i++) {
         cout<<endl;
         cout<<"Cycle "<<i<<endl;
         core.Step(l2cache,ram);
     }
-    //core.registerFile.dumpRawValue();
+    core.registerFile.dumpRawValue();
 
 }
 
