@@ -1,7 +1,7 @@
 # RISC-V-CPU-Simulator
 This is a C++ based RISC-V CPU simulation
 
-1st stage implementation: basic structure **current stage**  
+1st stage implementation: basic structure 
 1.32 registers  
 2.RAM  
 3.CPU cores  
@@ -9,7 +9,7 @@ This is a C++ based RISC-V CPU simulation
 2nd stage implementation: single cycle  
 1.fetch+decode+execute+memory+write back
 
-3rd stage implementation: 5 stage pipeline  
+3rd stage implementation: 5 stage pipeline  **current stage**  
 1.IF-IF/ID-ID-ID/EX-EX/MEM-MEM/WB-WB 
 2.pipline register  
 

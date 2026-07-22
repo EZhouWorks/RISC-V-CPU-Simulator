@@ -23,8 +23,9 @@ public:
     RegisterFile registerFile = RegisterFile();
     int core_id;
     L1Cache l1_cache = L1Cache();
-    PipelineRegisters pipeline_registers = PipelineRegisters();
-    ProgramCounter program_counter = ProgramCounter(0b0,255);
+    PipelineRegisters pipeline_registers_write = PipelineRegisters(); //this pipeline register set is write only
+    PipelineRegisters pipeline_registers_read = PipelineRegisters();  //this pipeline register set is read only
+    ProgramCounter program_counter = ProgramCounter(0b0,7);
 
     CPUcore(int core_id) {
         this->core_id = core_id;
@@ -40,55 +41,57 @@ public:
         return l1_cache.readWord(addr,l2cache,ram);
     }
 
-    void Fetch(ProgramCounter &program_counter,L2Cache& l2cache,RAM& ram) {
-        pipeline_registers.IF_ID_register.machine_code = CPULoadWord(program_counter.PC_value,l2cache,ram);
-        if (program_counter.StepForward(4) == 1) { //check if next step is valid
-            pipeline_registers.IF_ID_register.valid = 1;
-            pipeline_registers.IF_ID_register.drain = 4;
+    void Fetch(L2Cache& l2cache,RAM& ram) {
+        pipeline_registers_write.IF_ID_register.machine_code = CPULoadWord(program_counter.PC_value,l2cache,ram);
+        pipeline_registers_write.IF_ID_register.valid = 1;
+        if (program_counter.StepForward(4) == 1) {
+            pipeline_registers_write.IF_ID_register.valid = 1;
         }
         else {
-            pipeline_registers.IF_ID_register.valid = 0;
-            pipeline_registers.IF_ID_register.drain -= 1;
+            pipeline_registers_write.IF_ID_register.valid = 0;
         }
+        //cout<<"FETCH MC "<<bitset<32>(pipeline_registers_write.IF_ID_register.machine_code)<<endl;
+        cout<<"FETCH valid "<<pipeline_registers_write.IF_ID_register.valid<<endl;
     }
-    void Decode(uint32_t machine_code) {
-        if (pipeline_registers.IF_ID_register.valid == 1 or pipeline_registers.IF_ID_register.drain>=3) {
-            controller.SetControlSignal(decoder.Decode(machine_code)); //decode and generate control singal
+    void Decode() {
+        cout<<"decode valid "<<pipeline_registers_read.IF_ID_register.valid<<endl;
+        if (pipeline_registers_read.IF_ID_register.valid == 1) {
+            controller.SetControlSignal(decoder.Decode(pipeline_registers_read.IF_ID_register.machine_code)); //decode and generate control singal
             //store data and control signal into pipeline register
-            pipeline_registers.ID_EX_register.ALU_operation = controller.ALU_operation;
-            pipeline_registers.ID_EX_register.ALU_source1 = controller.ALU_source1;
-            pipeline_registers.ID_EX_register.ALU_source2 = controller.ALU_source2;
-            pipeline_registers.ID_EX_register.Memory_op = controller.Memory_op;
-            pipeline_registers.ID_EX_register.Memory_data_type = controller.Memory_data_type;
+            pipeline_registers_write.ID_EX_register.ALU_operation = controller.ALU_operation;
+            pipeline_registers_write.ID_EX_register.ALU_source1 = controller.ALU_source1;
+            pipeline_registers_write.ID_EX_register.ALU_source2 = controller.ALU_source2;
+            pipeline_registers_write.ID_EX_register.Memory_op = controller.Memory_op;
+            pipeline_registers_write.ID_EX_register.Memory_data_type = controller.Memory_data_type;
 
-            pipeline_registers.ID_EX_register.rs1_addr = decoder.rs1;
-            pipeline_registers.ID_EX_register.rs2_addr = decoder.rs2;
-            pipeline_registers.ID_EX_register.rd_addr = decoder.rd;
-            pipeline_registers.ID_EX_register.rs1_val = registerFile.read(decoder.rs1);
-            pipeline_registers.ID_EX_register.rs2_val = registerFile.read(decoder.rs2);
-            pipeline_registers.ID_EX_register.I_12bit_imm = decoder.I_12bit_imm;
-            pipeline_registers.ID_EX_register.I_shamt_imm = decoder.I_shamt_imm;
-            pipeline_registers.ID_EX_register.Memory_op = controller.Memory_op;
-            pipeline_registers.ID_EX_register.Store_imm = decoder.Store_imm;
-            pipeline_registers.ID_EX_register.Store_op = controller.Store_op;
-            pipeline_registers.ID_EX_register.valid = 1;
+            pipeline_registers_write.ID_EX_register.rs1_addr = decoder.rs1;
+            pipeline_registers_write.ID_EX_register.rs2_addr = decoder.rs2;
+            pipeline_registers_write.ID_EX_register.rd_addr = decoder.rd;
+            pipeline_registers_write.ID_EX_register.rs1_val = registerFile.read(decoder.rs1);
+            pipeline_registers_write.ID_EX_register.rs2_val = registerFile.read(decoder.rs2);
+            pipeline_registers_write.ID_EX_register.I_12bit_imm = decoder.I_12bit_imm;
+            pipeline_registers_write.ID_EX_register.I_shamt_imm = decoder.I_shamt_imm;
+            pipeline_registers_write.ID_EX_register.Memory_op = controller.Memory_op;
+            pipeline_registers_write.ID_EX_register.Store_imm = decoder.Store_imm;
+            pipeline_registers_write.ID_EX_register.Store_op = controller.Store_op;
+            pipeline_registers_write.ID_EX_register.valid = 1;
         }
         else {
-            pipeline_registers.ID_EX_register.valid = 0;
-            pipeline_registers.ID_EX_register.drain = pipeline_registers.IF_ID_register.drain;
+            pipeline_registers_write.ID_EX_register.valid = 0;
         }
     }
     void Execution() {
-        if (pipeline_registers.ID_EX_register.valid == 1 or pipeline_registers.ID_EX_register.drain>=2) {
+        cout<<"EX VALID "<<pipeline_registers_read.ID_EX_register.valid<<endl;
+        if (pipeline_registers_read.ID_EX_register.valid == 1) {
             uint32_t ALU_result = 0b0;
-            ALU_op alu_op = pipeline_registers.ID_EX_register.ALU_operation;
-            ALU_source alu_source1 = pipeline_registers.ID_EX_register.ALU_source1;
-            ALU_source alu_source2 = pipeline_registers.ID_EX_register.ALU_source2;
-            uint32_t rs1_val = pipeline_registers.ID_EX_register.rs1_val;
-            uint32_t rs2_val = pipeline_registers.ID_EX_register.rs2_val;
-            uint32_t I_12bit_imm = pipeline_registers.ID_EX_register.I_12bit_imm;
-            uint32_t I_shamt_imm = pipeline_registers.ID_EX_register.I_shamt_imm;
-            uint32_t store_imm = pipeline_registers.ID_EX_register.Store_imm;
+            ALU_op alu_op = pipeline_registers_read.ID_EX_register.ALU_operation;
+            ALU_source alu_source1 = pipeline_registers_read.ID_EX_register.ALU_source1;
+            ALU_source alu_source2 = pipeline_registers_read.ID_EX_register.ALU_source2;
+            uint32_t rs1_val = pipeline_registers_read.ID_EX_register.rs1_val;
+            uint32_t rs2_val = pipeline_registers_read.ID_EX_register.rs2_val;
+            uint32_t I_12bit_imm = pipeline_registers_read.ID_EX_register.I_12bit_imm;
+            uint32_t I_shamt_imm = pipeline_registers_read.ID_EX_register.I_shamt_imm;
+            uint32_t store_imm = pipeline_registers_read.ID_EX_register.Store_imm;
 
             switch (alu_source1) {
                 case rs1:
@@ -106,60 +109,64 @@ public:
             }
 
             //pass on data from ID/EX Register
-            pipeline_registers.EX_MEM_register.ALU_result = ALU_result;
-            pipeline_registers.EX_MEM_register.Memory_op = pipeline_registers.ID_EX_register.Memory_op;
-            pipeline_registers.EX_MEM_register.Memory_data_type = pipeline_registers.ID_EX_register.Memory_data_type;
-            pipeline_registers.EX_MEM_register.rd_addr = pipeline_registers.ID_EX_register.rd_addr;
-            pipeline_registers.EX_MEM_register.rs1_val = pipeline_registers.ID_EX_register.rs1_val;
-            pipeline_registers.EX_MEM_register.rs2_val = pipeline_registers.ID_EX_register.rs2_val;
-            pipeline_registers.EX_MEM_register.Store_imm = pipeline_registers.ID_EX_register.Store_imm;
-            pipeline_registers.EX_MEM_register.Store_op = pipeline_registers.ID_EX_register.Store_op;
-            pipeline_registers.EX_MEM_register.valid = 1;
-            pipeline_registers.EX_MEM_register.ALU_result = ALU_result;
+            pipeline_registers_write.EX_MEM_register.ALU_result = ALU_result;
+            pipeline_registers_write.EX_MEM_register.Memory_op = pipeline_registers_read.ID_EX_register.Memory_op;
+            pipeline_registers_write.EX_MEM_register.Memory_data_type = pipeline_registers_read.ID_EX_register.Memory_data_type;
+            pipeline_registers_write.EX_MEM_register.rd_addr = pipeline_registers_read.ID_EX_register.rd_addr;
+            pipeline_registers_write.EX_MEM_register.rs1_val = pipeline_registers_read.ID_EX_register.rs1_val;
+            pipeline_registers_write.EX_MEM_register.rs2_val = pipeline_registers_read.ID_EX_register.rs2_val;
+            pipeline_registers_write.EX_MEM_register.Store_imm = pipeline_registers_read.ID_EX_register.Store_imm;
+            pipeline_registers_write.EX_MEM_register.Store_op = pipeline_registers_read.ID_EX_register.Store_op;
+            pipeline_registers_write.EX_MEM_register.ALU_result = ALU_result;
+            pipeline_registers_write.EX_MEM_register.valid = 1;
         }
         else {
-            pipeline_registers.EX_MEM_register.valid = 0;
+            pipeline_registers_write.EX_MEM_register.valid = 0;
         }
     }
     void Memory(L2Cache &l2cache, RAM& ram) {
-        if (pipeline_registers.EX_MEM_register.valid == 1) {
-            Memory_op memory_op = pipeline_registers.EX_MEM_register.Memory_op;
-            Memory_data_type memory_data_type = pipeline_registers.EX_MEM_register.Memory_data_type;
-            uint32_t ALU_result = pipeline_registers.EX_MEM_register.ALU_result;
+        cout<<"MEM valid "<<pipeline_registers_read.EX_MEM_register.valid<<endl;
+        if (pipeline_registers_read.EX_MEM_register.valid == 1) {
+            Memory_op memory_op = pipeline_registers_read.EX_MEM_register.Memory_op;
+            Memory_data_type memory_data_type = pipeline_registers_read.EX_MEM_register.Memory_data_type;
+            uint32_t ALU_result = pipeline_registers_read.EX_MEM_register.ALU_result;
             l1_cache.Load(memory_op, memory_data_type,ALU_result,l2cache, ram); //Remember to connect this to I/O
 
             //pass on data from EX/MEM Register
-            pipeline_registers.MEM_WB_register.ALU_result = pipeline_registers.EX_MEM_register.ALU_result;
-            pipeline_registers.MEM_WB_register.rd_addr = pipeline_registers.EX_MEM_register.rd_addr;
-            pipeline_registers.MEM_WB_register.rs1_val = pipeline_registers.EX_MEM_register.Store_imm;
-            pipeline_registers.MEM_WB_register.Store_op = pipeline_registers.EX_MEM_register.Store_op;
-            pipeline_registers.MEM_WB_register.valid = 1;
+            pipeline_registers_write.MEM_WB_register.ALU_result = pipeline_registers_read.EX_MEM_register.ALU_result;
+            pipeline_registers_write.MEM_WB_register.rd_addr = pipeline_registers_read.EX_MEM_register.rd_addr;
+            pipeline_registers_write.MEM_WB_register.rs1_val = pipeline_registers_read.EX_MEM_register.Store_imm;
+            pipeline_registers_write.MEM_WB_register.Store_op = pipeline_registers_read.EX_MEM_register.Store_op;
+            pipeline_registers_write.MEM_WB_register.valid = 1;
         }
         else {
-            pipeline_registers.MEM_WB_register.valid = 0;
+            pipeline_registers_write.MEM_WB_register.valid = 0;
         }
     }
     void WriteBack(L2Cache& l2cache, RAM& ram) {
-        if (pipeline_registers.MEM_WB_register.valid == 1) {
-            uint32_t ALU_result = pipeline_registers.MEM_WB_register.ALU_result;
-            Store_op Store_op = pipeline_registers.MEM_WB_register.Store_op;
+        cout<<"WB Valid "<<pipeline_registers_read.MEM_WB_register.valid<<endl;
+        if (pipeline_registers_read.MEM_WB_register.valid == 1) {
+            uint32_t ALU_result = pipeline_registers_read.MEM_WB_register.ALU_result;
+            Store_op Store_op = pipeline_registers_read.MEM_WB_register.Store_op;
             uint32_t Store_addr = ALU_result;
-            uint32_t rd_addr = pipeline_registers.MEM_WB_register.rd_addr;
-            uint32_t rs2_val = pipeline_registers.MEM_WB_register.rs2_val;
+            uint32_t rd_addr = pipeline_registers_read.MEM_WB_register.rd_addr;
+
+            cout<<"WB "<<rd_addr<<endl;
+            uint32_t rs2_val = pipeline_registers_read.MEM_WB_register.rs2_val;
 
             registerFile.write(rd_addr,ALU_result);
             l1_cache.Store(Store_op,Store_addr,rs2_val, l2cache, ram);
         }
     }
 
-    void Step(ProgramCounter program_counter, L2Cache &l2cache, RAM& ram) {
-        Fetch(program_counter,l2cache,ram);
-        Decode(pipeline_registers.IF_ID_register.machine_code);
+    void Step(L2Cache &l2cache, RAM& ram) {
+        Fetch(l2cache,ram);
+        Decode();
         Execution();
         Memory(l2cache,ram);
         WriteBack(l2cache,ram);
+        pipeline_registers_read = pipeline_registers_write; //flip value every cycle
     }
-
 };
 
 #endif //RISC_V_CPU_SIMULATOR_CPUCORE_H

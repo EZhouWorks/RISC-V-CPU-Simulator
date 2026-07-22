@@ -16,11 +16,13 @@ public:
     }
 
     int StepForward(int steps) {
-        if (PC_value+steps <= End_value) {
+        if (PC_value+steps <= End_value+4) {
             PC_value = PC_value + steps;
+            cout<<"PC_VAL"<<PC_value<<endl;
             return 1;
         }
         else {
+            cout<<"PC out of range"<<endl;
             return 0;
         }
     }

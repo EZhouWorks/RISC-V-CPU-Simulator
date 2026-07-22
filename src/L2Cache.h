@@ -60,12 +60,12 @@ public:
 
         CacheLine& target_cacheLine = cachelines[index];
         if (target_cacheLine.valid == 1 and target_cacheLine.tag == tag) { //hit
-            cout<<"hit L2"<<endl;
+            //cout<<"hit L2"<<endl;
 
             return target_cacheLine;
         }
         else { //miss, manually read from RAM
-            cout<<"miss L2"<<endl;
+            //cout<<"miss L2"<<endl;
             return loadCacheBlockFromRAM(addr,ram);
         }
     }

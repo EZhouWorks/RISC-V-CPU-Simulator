@@ -59,11 +59,6 @@ public:
     EX_MEM_data EX_MEM_register;
     MEM_WB_data MEM_WB_register;
     PipelineRegisters() {
-        // this->IF_ID_register = 0b0;
-        // this->ID_EX_register.ALU_operation =  NONE_op;
-        // this->ID_EX_register.ALU_source = rs2;
-        // this->EX_MEM_register = 0b0;
-        // this->MEM_WB_register = 0b0;
         IF_ID_register.valid = 0;
         ID_EX_register.valid = 0;
         EX_MEM_register.valid = 0;
@@ -72,4 +67,5 @@ public:
         MEM_WB_register.Store_op = STOREBYTE;
     }
 };
+
 #endif //RISC_V_CPU_SIMULATOR_PIPELINEREGISTERS_H

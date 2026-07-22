@@ -22,39 +22,39 @@ void varifyPipeline(CPUcore &core, L2Cache& l2cache, RAM &ram) {
 
         // addi x2, x0, 10
         0b00000000101000000000000100010011,
-
-        // add x3, x1, x2
-        0b00000000001000001000000110110011,
-
-        // sub x4, x2, x1
-        0b01000000000100010000001000110011,
-
-        // and x5, x1, x2
-        0b00000000001000001111001010110011,
-
-        // or x6, x1, x2
-        0b00000000001000001110001100110011,
-
-        // xor x7, x1, x2
-        0b00000000001000001100001110110011,
-
-        // sw x3, 0(x0)
-        0b00000000001100000010000000100011
+        //
+        // // add x3, x1, x2
+        // 0b00000000001000001000000110110011,
+        //
+        // // sub x4, x2, x1
+        // 0b01000000000100010000001000110011,
+        //
+        // // and x5, x1, x2
+        // 0b00000000001000001111001010110011,
+        //
+        // // or x6, x1, x2
+        // 0b00000000001000001110001100110011,
+        //
+        // // xor x7, x1, x2
+        // 0b00000000001000001100001110110011,
+        //
+        // // sw x3, 0(x0)
+        // 0b00000000001100000010000000100011
     };
-    ram.loadCommands(commands, 8,0);
-    for (int i=0;i<13;i++) {
+    ram.loadCommands(commands, 2,0);
+    for (int i=0;i<10;i++) {
+        cout<<endl;
         cout<<"Cycle "<<i<<endl;
-        core.Step(core.program_counter,l2cache,ram);
+        core.Step(l2cache,ram);
     }
+    //core.registerFile.dumpRawValue();
 
 }
 
 
 int main() {
-    uint32_t machine_code = 0b00000000001000001111000110110011;
     RAM ram = RAM();
     L2Cache l2cache = L2Cache(ram);
     CPUcore core0 = CPUcore(0);
     varifyPipeline(core0,l2cache,ram);
-
 }

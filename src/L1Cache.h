@@ -51,7 +51,7 @@ public:
 
         CacheLine& target_cacheLine = cachelines[index];
         if (target_cacheLine.valid == 1 and target_cacheLine.tag == tag) { //hit
-            cout<<"hit L1"<<endl;
+            //cout<<"hit L1"<<endl;
             return
                   (uint32_t)target_cacheLine.bytes[offset]
                 | ((uint32_t)target_cacheLine.bytes[offset+1] << 8)
@@ -59,7 +59,7 @@ public:
                 | ((uint32_t)target_cacheLine.bytes[offset+3] << 24);
         }
         else { //miss, read and load from L2 Cache
-            cout<<"miss L1"<<endl;
+            //cout<<"miss L1"<<endl;
             target_cacheLine = l2cache.readFullData(addr,ram);
             cachelines[index] = target_cacheLine;
             cachelines[index].valid = 1;
@@ -82,7 +82,7 @@ public:
 
         CacheLine& target_cacheLine = cachelines[index];
         if (target_cacheLine.valid == 1 and target_cacheLine.tag == tag) { //hit
-            cout<<"hit L1"<<endl;
+            //cout<<"hit L1"<<endl;
             return
                   (uint32_t)target_cacheLine.bytes[offset]
                 | ((uint32_t)target_cacheLine.bytes[offset+1] << 8);
@@ -109,12 +109,12 @@ public:
 
         CacheLine& target_cacheLine = cachelines[index];
         if (target_cacheLine.valid == 1 and target_cacheLine.tag == tag) { //hit
-            cout<<"hit L1"<<endl;
+            //cout<<"hit L1"<<endl;
             return
                   (uint32_t)target_cacheLine.bytes[offset];
         }
         else { //miss, read and load from L2 Cache
-            cout<<"miss L1"<<endl;
+            //cout<<"miss L1"<<endl;
             target_cacheLine = l2cache.readFullData(addr,ram);
             cachelines[index] = target_cacheLine;
             cachelines[index].valid = 1;
