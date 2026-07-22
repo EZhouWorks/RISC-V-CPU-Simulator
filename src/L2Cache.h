@@ -1,6 +1,4 @@
-//
-// Created by zhoue on 2026/7/19.
-//
+//L2 Cache does not have dirty data
 //256kB L2 Cache
 #ifndef RISC_V_CPU_SIMULATOR_L2CACHE_H
 #define RISC_V_CPU_SIMULATOR_L2CACHE_H
@@ -10,6 +8,7 @@ constexpr int BLOCK_SIZE_L2 = 64;
 constexpr int CACHE_LINES_L2 = 4096;
 
 struct CacheLine {
+    int dirty; //indicates if this line is the same as corresponding data block in RAM
     int valid;
     int tag;
     uint8_t bytes[64]; //each cacheline stores 16 commands， 64byte storage,
@@ -18,17 +17,18 @@ struct CacheLine {
 class L2Cache {
 public:
     CacheLine cachelines[CACHE_LINES_L2];
-    L2Cache() { //initialize
+    L2Cache(RAM &ram) { //initialize
         for (int i = 0; i < CACHE_LINES_L2; i++) {
             cachelines[i].valid = 0;
             cachelines[i].tag = 0;
+            cachelines[i].dirty = 0;
             for (int j = 0; j < BLOCK_SIZE_L2; j++) {
                 cachelines[i].bytes[j] = 0;
             }
         }
     }
 
-    CacheLine loadCacheBlockFromRAM(uint32_t addr, RAM &ram) {
+    CacheLine loadCacheBlockFromRAM(uint32_t addr,RAM& ram) {
         uint32_t block = addr/BLOCK_SIZE_L2;
         uint32_t index = block%CACHE_LINES_L2;
         uint32_t tag = block/CACHE_LINES_L2;
@@ -43,6 +43,7 @@ public:
 
         cachelines[index].valid = 1;
         cachelines[index].tag = tag;
+        cachelines[index].dirty = 0;
 
         return cachelines[index];
 
@@ -51,7 +52,7 @@ public:
         return cacheLine;
     }
 
-    CacheLine readFullData(uint32_t addr, RAM &ram) { //this returns the whole cacheline
+    CacheLine readFullData(uint32_t addr,RAM& ram) { //this returns the whole cacheline
         uint32_t block = addr/BLOCK_SIZE_L2;
         uint32_t index = block%CACHE_LINES_L2;
         uint32_t tag = block/CACHE_LINES_L2;
@@ -65,8 +66,17 @@ public:
         }
         else { //miss, manually read from RAM
             cout<<"miss L2"<<endl;
-            return loadCacheBlockFromRAM(addr, ram);
+            return loadCacheBlockFromRAM(addr,ram);
         }
+    }
+
+    void replaceCacheLine(CacheLine cacheLine, uint32_t addr) {
+        uint32_t block = addr/BLOCK_SIZE_L2;
+        uint32_t index = block%CACHE_LINES_L2;
+        uint32_t tag = block/CACHE_LINES_L2;
+        cachelines[index] = cacheLine;
+        cachelines[index].tag = tag;
+        cachelines[index].valid = 1;
     }
 
 };

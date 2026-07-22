@@ -9,12 +9,20 @@
 class ProgramCounter {
 public:
     uint32_t PC_value = 0;
-    ProgramCounter(uint32_t entry_point) {
+    uint32_t End_value;
+    ProgramCounter(uint32_t entry_point,uint32_t end_point) {
         this->PC_value = entry_point;
+        this->End_value = end_point;
     }
 
-    void StepForward(int steps) {
-        PC_value = PC_value + steps;
+    int StepForward(int steps) {
+        if (PC_value+steps <= End_value) {
+            PC_value = PC_value + steps;
+            return 1;
+        }
+        else {
+            return 0;
+        }
     }
     
 

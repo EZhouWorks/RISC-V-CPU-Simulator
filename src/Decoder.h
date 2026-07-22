@@ -5,7 +5,7 @@
 #include<bitset>
 class Decoder {
 public:
-    uint32_t rd,rs1,rs2,I_12bit_imm,I_shamt_imm,SYS_code = 0b0;
+    uint32_t rd,rs1,rs2,I_12bit_imm,I_shamt_imm,SYS_code,Store_imm = 0b0;
     uint32_t Decode(uint32_t machine_code) {
         //machine code dispart (addr)
         uint32_t opcode = machine_code & 0x7F;
@@ -17,6 +17,7 @@ public:
         I_12bit_imm = (machine_code >> 20) & 0xFFF;
         I_shamt_imm = (machine_code >> 20) & 0x1F;
         SYS_code = I_12bit_imm;
+        Store_imm =(((machine_code >> 25) & 0x7F) << 5)|((machine_code >> 7) & 0x1F);
 
 
         switch (opcode) {

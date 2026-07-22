@@ -16,10 +16,17 @@ enum ALU_op
     SRA_op,
     SLT_op,
     SLTU_op,
-    NONE_op,
+    NO_ALU_OP,
 };
 
+enum ALU_source { //indicate 2nd num from rs2/imm
+    rs1,
+    rs2,
+    I_12bit_imm,
+    I_shamt_imm,
+    store_imm
 
+};
 
 
 class ALU {
@@ -84,6 +91,7 @@ public:
                 case SRA_op: return SRA(x1_value, x2_value);
                 case SLT_op: return SLT(x1_value, x2_value);
                 case SLTU_op: return SLTU(x1_value, x2_value);
+                case NO_ALU_OP: break;
                 default:
                     throw runtime_error("Invalid ALU command");
         }

@@ -13,52 +13,48 @@ void dumpSelectedReg(CPUcore core, int reg1_index, int reg2_index, int reg3_inde
     cout<<"Reg "<<reg2_index<<" :"<<core.registerFile.read(reg2_index)<<endl;
     cout<<"Reg "<<reg3_index<<" :"<<core.registerFile.read(reg3_index)<<endl;
 }
-void varifyCommand(CPUcore core, vector<uint32_t> machine_code) {
-    core.registerFile.write(1,3); //rs1 val
-    for (uint32_t m_code : machine_code) {
-        cout<<"machine code: "<<hex<<m_code<<endl;
 
-        core.Step(m_code);
-        cout<<"imm value: "<<core.decoder.I_shamt_imm<<endl;
-        cout<<"r1 value: "<<core.registerFile.read(1)<<endl;
-        cout<<"rd value: "<<core.registerFile.read(3)<<endl<<endl;
+void varifyPipeline(CPUcore &core, L2Cache& l2cache, RAM &ram) {
+    uint32_t commands[] = {
+
+        // addi x1, x0, 5
+        0b00000000010100000000000010010011,
+
+        // addi x2, x0, 10
+        0b00000000101000000000000100010011,
+
+        // add x3, x1, x2
+        0b00000000001000001000000110110011,
+
+        // sub x4, x2, x1
+        0b01000000000100010000001000110011,
+
+        // and x5, x1, x2
+        0b00000000001000001111001010110011,
+
+        // or x6, x1, x2
+        0b00000000001000001110001100110011,
+
+        // xor x7, x1, x2
+        0b00000000001000001100001110110011,
+
+        // sw x3, 0(x0)
+        0b00000000001100000010000000100011
+    };
+    ram.loadCommands(commands, 8,0);
+    for (int i=0;i<13;i++) {
+        cout<<"Cycle "<<i<<endl;
+        core.Step(core.program_counter,l2cache,ram);
     }
-}
-void varifyL1Cache(CPUcore core) {
-    L2Cache l2cache = L2Cache();
-    RAM ram = RAM();
-    ram.memory[0] = 0b10110011;
-    ram.memory[1] = 0b11110001;
-    ram.memory[2] = 0b00100000;
-    ram.memory[3] = 0b00000000;
-    l2cache.loadCacheBlockFromRAM(0,ram);
-    cout<<bitset<32>(core.l1_cache.readFullData(0,l2cache,ram))<<endl;
-
-    cout<<bitset<32>(core.l1_cache.readFullData(0,l2cache,ram))<<endl;
-
 
 }
+
 
 int main() {
     uint32_t machine_code = 0b00000000001000001111000110110011;
+    RAM ram = RAM();
+    L2Cache l2cache = L2Cache(ram);
     CPUcore core0 = CPUcore(0);
-    core0.registerFile.write(1,3); //rs1 val
-    // core0.registerFile.write(2,4); //rs2 val
-    // core0.Step(machine_code);
-    // //dumpSelectedReg(core0,3,1,2);
-    // core0.registerFile.dumpRawValue();
-    vector<uint32_t> ITypeCommandSet = {
-        //0b00000000 01010000 10000001 10010011,
-        0b00000000010100001010000110010011,
-        0b00000000010100001011000110010011,
-        0b00000000010100001100000110010011,
-        0b00000000010100001110000110010011,
-        0b00000000010100001111000110010011,
-        0b00000000001000001001000110010011,
-        0b00000000001000001101000110010011,
-        0b01000000001000001101000110010011
-    };
-
-    varifyL1Cache(core0);
+    varifyPipeline(core0,l2cache,ram);
 
 }
