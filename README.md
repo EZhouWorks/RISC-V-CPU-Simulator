@@ -1,5 +1,5 @@
-# RISC-V-CPU-Simulator
-This is a C++ based RISC-V CPU simulation
+# Multicore RISC-V-CPU-Simulator
+This is a C++ based multicore RISC-V CPU simulation
 
 1st stage implementation: basic structure 
 1.32 registers  
